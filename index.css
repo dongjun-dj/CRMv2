@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* iOS Native Adaptations */
+@layer base {
+  body {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none; /* Disable long-press menu */
+    overscroll-behavior-y: none; /* Prevent bounce */
+    background-color: #F2F2F7;
+    user-select: none; /* Disable text selection for app-like feel */
+  }
+
+  /* Allow text selection in inputs */
+  input, textarea {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+}
+
+/* Hide Scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

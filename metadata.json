@@ -1,0 +1,7 @@
+{
+  "name": "iCRM Personal",
+  "description": "A lightweight, local-first customer management system designed with iOS aesthetics for personal use.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
