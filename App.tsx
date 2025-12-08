@@ -5,6 +5,7 @@ import { storage, generateId } from './services/storage';
 import { excelService, ExportStatus } from './services/excelService';
 import { IconPlus, IconChevronLeft, IconPhone, IconUsers, IconList, IconGitMerge, IconCamera, IconSearch, IconTrash, IconBriefcase, IconShare, IconDownload } from './components/Icons';
 import { OrgChart } from './components/OrgChart';
+import { SwipeableCustomerCard } from './components/SwipeableCustomerCard';
 import * as XLSX from 'xlsx';
 
 // --- Components ---
@@ -1025,80 +1026,17 @@ const App = () => {
                     ) : (
                         <div className="divide-y divide-gray-200 bg-white">
                             {filteredCustomers.map(c => (
-                                <div
+                                <SwipeableCustomerCard
                                     key={c.id}
-                                    className="relative overflow-hidden"
-                                >
-                                    <div
-                                        onClick={() => setSelectedCustomerId(c.id)}
-                                        className="px-4 py-4 active:bg-gray-50 flex items-center justify-between transition-transform"
-                                        style={{ transform: 'translateX(0)' }}
-                                        onTouchStart={(e) => {
-                                            const startX = e.touches[0].clientX;
-                                            const currentElement = e.currentTarget;
-                                            
-                                            const handleTouchMove = (e: TouchEvent) => {
-                                                const currentX = e.touches[0].clientX;
-                                                const diffX = startX - currentX;
-                                                
-                                                if (diffX > 0 && diffX < 100) {
-                                                    currentElement.style.transform = `translateX(-${diffX}px)`;
-                                                } else if (diffX >= 100) {
-                                                    currentElement.style.transform = 'translateX(-100px)';
-                                                } else {
-                                                    currentElement.style.transform = 'translateX(0)';
-                                                }
-                                            };
-                                            
-                                            const handleTouchEnd = () => {
-                                                const transform = currentElement.style.transform;
-                                                const translateX = parseInt(transform.replace(/[^\d-]/g, '')) || 0;
-                                                
-                                                if (translateX < -50) {
-                                                    currentElement.style.transform = 'translateX(-100px)';
-                                                } else {
-                                                    currentElement.style.transform = 'translateX(0)';
-                                                }
-                                                
-                                                document.removeEventListener('touchmove', handleTouchMove);
-                                                document.removeEventListener('touchend', handleTouchEnd);
-                                            };
-                                            
-                                            document.addEventListener('touchmove', handleTouchMove);
-                                            document.addEventListener('touchend', handleTouchEnd);
-                                        }}
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden font-bold text-gray-500 text-sm">
-                                                {c.photo ? <img src={c.photo} className="w-full h-full object-cover"/> : c.name[0]}
-                                            </div>
-                                            <div>
-                                                <div className="font-medium text-gray-900">{c.name}</div>
-                                                <div className="text-sm text-gray-500">
-                                                    {companyDepartments.find(d => d.id === c.departmentId)?.name}
-                                                    {c.jobTitle && ` · ${c.jobTitle}`}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                            c.status === 2 ? 'bg-green-100 text-green-700' :
-                                            c.status === -2 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'
-                                        }`}>
-                                            {c.status}
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setCustomerToDelete(c);
-                                            setShowCustomerDeleteDialog(true);
-                                        }}
-                                        className="absolute right-0 top-0 bottom-0 bg-red-500 text-white px-4 flex items-center justify-center"
-                                        style={{ width: '100px', transform: 'translateX(100%)' }}
-                                    >
-                                        删除
-                                    </button>
-                                </div>
+                                    customer={c}
+                                    departmentName={companyDepartments.find(d => d.id === c.departmentId)?.name}
+                                    isSelected={selectedCustomerId === c.id}
+                                    onClick={() => setSelectedCustomerId(c.id)}
+                                    onDelete={(customer) => {
+                                        setCustomerToDelete(customer);
+                                        setShowCustomerDeleteDialog(true);
+                                    }}
+                                />
                             ))}
                         </div>
                     )}
