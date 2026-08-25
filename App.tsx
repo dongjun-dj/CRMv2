@@ -229,10 +229,19 @@ interface ImportExportProps {
   company: Company;
   customers: Customer[];
   departments: Department[];
+  allCustomers: Customer[];
+  allDepartments: Department[];
   onImportComplete: () => void;
 }
 
-const ImportExportView = ({ company, customers, departments, onImportComplete }: ImportExportProps) => {
+const ImportExportView = ({
+  company,
+  customers,
+  departments,
+  allCustomers,
+  allDepartments,
+  onImportComplete
+}: ImportExportProps) => {
   
   const handleExport = () => {
     // Flatten data for Excel
@@ -378,7 +387,13 @@ const ImportExportView = ({ company, customers, departments, onImportComplete }:
     });
 
     // Save
-    storage.saveCompanyData(company.id, newCustomers, newDepts);
+    storage.saveCompanyData(
+      company.id,
+      newCustomers,
+      newDepts,
+      allCustomers,
+      allDepartments
+    );
     onImportComplete();
     alert(`成功导入 ${rowsToProcess.length} 条数据`);
   };
@@ -989,6 +1004,8 @@ const App = () => {
                 company={activeCompany} 
                 customers={companyCustomers} 
                 departments={companyDepartments}
+                allCustomers={customers}
+                allDepartments={departments}
                 onImportComplete={handleImportComplete}
               />
           ) : view === 'CHART' ? (

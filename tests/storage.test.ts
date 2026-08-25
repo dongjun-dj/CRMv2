@@ -44,4 +44,33 @@ describe('storage.saveCompanyData', () => {
     expect(storage.getCustomers()).toEqual([otherCustomer, ...importedCustomers]);
     expect(storage.getDepartments()).toEqual([otherDepartment, ...importedDepartments]);
   });
+
+  it('两个公司连续导入后同时保留两份数据', () => {
+    const companyACustomers: Customer[] = [
+      { id: 'customer-a', companyId: 'company-a', name: '公司A客户', createdAt: 1 }
+    ];
+    const companyADepartments: Department[] = [
+      { id: 'department-a', companyId: 'company-a', name: '公司A部门' }
+    ];
+    storage.saveCompanyData('company-a', companyACustomers, companyADepartments, [], []);
+
+    const afterFirstCustomers = storage.getCustomers();
+    const afterFirstDepartments = storage.getDepartments();
+    const companyBCustomers: Customer[] = [
+      { id: 'customer-b', companyId: 'company-b', name: '公司B客户', createdAt: 2 }
+    ];
+    const companyBDepartments: Department[] = [
+      { id: 'department-b', companyId: 'company-b', name: '公司B部门' }
+    ];
+    storage.saveCompanyData(
+      'company-b',
+      companyBCustomers,
+      companyBDepartments,
+      afterFirstCustomers,
+      afterFirstDepartments
+    );
+
+    expect(storage.getCustomers()).toEqual([...companyACustomers, ...companyBCustomers]);
+    expect(storage.getDepartments()).toEqual([...companyADepartments, ...companyBDepartments]);
+  });
 });

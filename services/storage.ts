@@ -37,12 +37,14 @@ export const storage = {
   saveCompanyData: (
     companyId: string,
     customers: Customer[],
-    departments: Department[]
+    departments: Department[],
+    allCustomers: Customer[] = storage.getCustomers(),
+    allDepartments: Department[] = storage.getDepartments()
   ) => {
-    const otherCustomers = storage.getCustomers().filter(
+    const otherCustomers = allCustomers.filter(
       customer => customer.companyId !== companyId
     );
-    const otherDepartments = storage.getDepartments().filter(
+    const otherDepartments = allDepartments.filter(
       department => department.companyId !== companyId
     );
 
