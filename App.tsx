@@ -378,8 +378,7 @@ const ImportExportView = ({ company, customers, departments, onImportComplete }:
     });
 
     // Save
-    storage.saveDepartments(newDepts);
-    storage.saveCustomers(newCustomers);
+    storage.saveCompanyData(company.id, newCustomers, newDepts);
     onImportComplete();
     alert(`成功导入 ${rowsToProcess.length} 条数据`);
   };

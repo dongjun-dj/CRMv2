@@ -29,6 +29,25 @@ export const storage = {
   },
   saveDepartments: (data: Department[]) => {
     localStorage.setItem(KEYS.DEPARTMENTS, JSON.stringify(data));
+  },
+
+  // Import screens only work with one company's filtered data. Merge that data
+  // back into the global collections so importing one company cannot erase
+  // records belonging to another company.
+  saveCompanyData: (
+    companyId: string,
+    customers: Customer[],
+    departments: Department[]
+  ) => {
+    const otherCustomers = storage.getCustomers().filter(
+      customer => customer.companyId !== companyId
+    );
+    const otherDepartments = storage.getDepartments().filter(
+      department => department.companyId !== companyId
+    );
+
+    storage.saveCustomers([...otherCustomers, ...customers]);
+    storage.saveDepartments([...otherDepartments, ...departments]);
   }
 };
 
