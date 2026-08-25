@@ -9,6 +9,23 @@ interface OrgChartProps {
   onSelectCustomer: (id: string) => void;
 }
 
+type PositionedNode = { x: number; y: number };
+
+export const getHorizontalNodeTransform = (node: PositionedNode) =>
+  `translate(${node.y},${node.x})`;
+
+export const getHorizontalLinkPath = (
+  link: { source: PositionedNode; target: PositionedNode },
+  nodeWidth: number
+) => {
+  const sourceX = link.source.y + nodeWidth;
+  const sourceY = link.source.x;
+  const targetX = link.target.y;
+  const targetY = link.target.x;
+  const middleX = (sourceX + targetX) / 2;
+  return `M${sourceX},${sourceY}C${middleX},${sourceY} ${middleX},${targetY} ${targetX},${targetY}`;
+};
+
 export const OrgChart: React.FC<OrgChartProps> = ({ companyName, customers, departments, onSelectCustomer }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedDept, setSelectedDept] = useState<string>('all');
@@ -69,11 +86,12 @@ export const OrgChart: React.FC<OrgChartProps> = ({ companyName, customers, depa
 
     const root = d3.hierarchy(data);
     
-    // Set tree layout settings
-    // Node size: width, height space between nodes
+    // Lay the hierarchy out from left to right. D3's tree coordinates use x
+    // for the sibling axis and y for depth, so they are swapped when drawn.
     const nodeWidth = 140;
     const nodeHeight = 80;
-    const treeLayout = d3.tree().nodeSize([nodeWidth + 20, nodeHeight + 40]);
+    const horizontalGap = 80;
+    const treeLayout = d3.tree().nodeSize([nodeHeight + 30, nodeWidth + horizontalGap]);
     
     treeLayout(root);
 
@@ -94,9 +112,9 @@ export const OrgChart: React.FC<OrgChartProps> = ({ companyName, customers, depa
 
     svg.call(zoom as any);
 
-    // Initial transform to center top root
-    const initialY = 50;
-    const initialX = width / 2;
+    // Start the company root on the left and vertically centered.
+    const initialX = 40;
+    const initialY = height / 2;
     // Apply initial zoom
     svg.call(zoom.transform as any, d3.zoomIdentity.translate(initialX, initialY).scale(0.8));
 
@@ -109,10 +127,7 @@ export const OrgChart: React.FC<OrgChartProps> = ({ companyName, customers, depa
       .attr('fill', 'none')
       .attr('stroke', '#C6C6C8')
       .attr('stroke-width', 2)
-      .attr('d', d3.linkVertical()
-        .x((d: any) => d.x)
-        .y((d: any) => d.y) as any
-      );
+      .attr('d', (d: any) => getHorizontalLinkPath(d, nodeWidth));
 
     // Nodes Group
     const nodes = g.selectAll('.node')
@@ -120,7 +135,7 @@ export const OrgChart: React.FC<OrgChartProps> = ({ companyName, customers, depa
       .enter()
       .append('g')
       .attr('class', 'node')
-      .attr('transform', (d: any) => `translate(${d.x},${d.y})`)
+      .attr('transform', (d: any) => getHorizontalNodeTransform(d))
       .style('cursor', (d: any) => d.data.isVirtual ? 'default' : 'pointer')
       .on('click', (event, d: any) => {
         if (!d.data.isVirtual) {
@@ -132,8 +147,8 @@ export const OrgChart: React.FC<OrgChartProps> = ({ companyName, customers, depa
 
     // 1. Box
     nodes.append('rect')
-      .attr('x', -nodeWidth / 2)
-      .attr('y', 0)
+      .attr('x', 0)
+      .attr('y', (d: any) => -(d.data.isVirtual ? 40 : nodeHeight) / 2)
       .attr('width', nodeWidth)
       .attr('height', (d: any) => d.data.isVirtual ? 40 : nodeHeight) // Shorter box for Company Root
       .attr('rx', (d: any) => d.data.isVirtual ? 20 : 12)
@@ -159,7 +174,8 @@ export const OrgChart: React.FC<OrgChartProps> = ({ companyName, customers, depa
     // Company Name (Centered vertically in shorter box)
     nodes.filter((d: any) => d.data.isVirtual)
       .append('text')
-      .attr('dy', 25)
+      .attr('x', nodeWidth / 2)
+      .attr('dy', '0.35em')
       .attr('text-anchor', 'middle')
       .text((d: any) => d.data.name)
       .attr('font-weight', 'bold')
@@ -168,7 +184,9 @@ export const OrgChart: React.FC<OrgChartProps> = ({ companyName, customers, depa
 
     // Person Name
     peopleNodes.append('text')
-      .attr('dy', 30)
+      .attr('x', nodeWidth / 2)
+      .attr('y', -15)
+      .attr('dy', '0.35em')
       .attr('text-anchor', 'middle')
       .text((d: any) => d.data.name)
       .attr('font-weight', 'bold')
@@ -177,7 +195,9 @@ export const OrgChart: React.FC<OrgChartProps> = ({ companyName, customers, depa
 
     // 4. Job Title (People only)
     peopleNodes.append('text')
-      .attr('dy', 50)
+      .attr('x', nodeWidth / 2)
+      .attr('y', 5)
+      .attr('dy', '0.35em')
       .attr('text-anchor', 'middle')
       .text((d: any) => d.data.jobTitle || '员工')
       .attr('fill', '#8E8E93')
@@ -185,7 +205,9 @@ export const OrgChart: React.FC<OrgChartProps> = ({ companyName, customers, depa
       
     // 5. Dept Name (People only)
     peopleNodes.append('text')
-      .attr('dy', 66)
+      .attr('x', nodeWidth / 2)
+      .attr('y', 23)
+      .attr('dy', '0.35em')
       .attr('text-anchor', 'middle')
       .text((d: any) => {
         const dept = departments.find(dep => dep.id === d.data.departmentId);
